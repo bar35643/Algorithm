@@ -8,6 +8,20 @@ from graph import Graph
 from sssp import Dijkstra, BellmanFord
 
 import time
+import numpy as np
+inf = 999999999
+
+def GraphToWeightarray(G):
+    tmp = np.zeros((G.numVerts, G.numVerts), dtype=int)
+    tmp.fill(inf)
+    np.fill_diagonal(tmp, 0)
+    tmp = tmp.tolist()
+    
+    for i in range(G.numEdges):
+        v1, v2 = G.getEdge(i)
+        cost= G.getEdgeCost(i)
+        tmp[v1][v2] = G.getEdgeCost(i)
+    return tmp
 
 
 
@@ -70,14 +84,14 @@ def FloydWarshall(G):
     return Acur, IntV
 
 
-def reconstructFM(G, IntV):
-    """Reconstructs all path shortest paths from values returned by FloydWarshall.
+def reconstructFW(G, IntV):
+    """Reconstructs all path shortest paths from values returned by FloydWarshall or APSP or Fast_APSP.
 
     Returns ((tail_vertex, head_vertex), path_cost, path_list) for each
     pairs of vertices in the graph.
     >>> G = Graph.loadFromFile('g0.txt', True)
     >>> SP, IntV = FloydWarshall(G)
-    >>> reconstructFM(G, IntV)
+    >>> reconstructFW(G, IntV)
     (0, 0): []
     (0, 1): [0, 2, 3, 1]
     (0, 2): [0, 2]
@@ -224,9 +238,104 @@ def reconstructJohnson(G, P):
         for j in range(len(P)):
             print ("(%d, %d): %s" % (i, j, SP(i, j)))
 
-if __name__ == '__main__':
+
+
+
+
+
+
+
+
+def ExtendShortestPaths(L, W, IntV):
+    L2 = copy.copy(L)
+    
+    for k in range(0, len(L)):
+        for i in range(0, len(L)):
+            for j in range (0, len(L)):
+                
+                tmp = L[i][k] + W[k][j]
+                if(tmp < L[i][j]):  IntV[i][j] = k
+                L2[i][j] = min(   L[i][j], tmp   )
+    return L2
+
+def APSP(G):
+    """All pairs shortest path algorithm.
+    
+    Returns n x n shortest path lengthes array and a n x n largest interior
+    vertex array such that (i,j)-entry contains the
+    largest vertex index among all interior vertices forming
+    the shortest path from vertex i to vertex j. If the shortest
+    path from vertex i to vertex j is a direct link (i.e. no
+    interior vertices) then (i,j)-entry contains 0.
+
+    >>> G = Graph.loadFromFile('g0.txt', True)
+    >>> G.numVerts, G.numEdges
+    (4, 5)
+    >>> APSP(G)
+    ([[0, -1, -2, 0], [4, 0, 2, 4], [5, 1, 0, 2], [3, -1, 1, 0]], [[-1, 3, -1, 2], [-1, -1, 0, 2], [3, 3, -1, -1], [1, -1, 1, -1]])
+    """
+    W = GraphToWeightarray(G)
+    L = copy.copy(W)
+    IntV = np.array(copy.deepcopy(W))
+    IntV.fill(-1)
+
+    #print("1:", L)
+    for m in range(1, len(L)):
+        L = ExtendShortestPaths(L, W, IntV)
+        #print(f"{m+1}:", L)
+    return L, IntV.tolist()
+
+def Fast_APSP(G):
+    """All pairs shortest path algorithm.
+    
+    Returns n x n shortest path lengthes array and a n x n largest interior
+    vertex array such that (i,j)-entry contains the
+    largest vertex index among all interior vertices forming
+    the shortest path from vertex i to vertex j. If the shortest
+    path from vertex i to vertex j is a direct link (i.e. no
+    interior vertices) then (i,j)-entry contains 0.
+
+    >>> G = Graph.loadFromFile('g0.txt', True)
+    >>> G.numVerts, G.numEdges
+    (4, 5)
+    >>> Fast_APSP(G)
+    ([[0, -1, -2, 0], [4, 0, 2, 4], [5, 1, 0, 2], [3, -1, 1, 0]], [[-1, 3, -1, 2], [-1, -1, 0, 2], [3, 3, -1, -1], [1, -1, 1, -1]])
+    """
+    W = GraphToWeightarray(G)
+    L = copy.copy(W)
+    IntV = np.array(copy.deepcopy(W))
+    IntV.fill(-1)
+    #print("0:", L)
+    m = 0
+    while(m < len(L)-1):
+        L = ExtendShortestPaths(copy.copy(L), copy.copy(L), IntV)
+        m = m + 2
+        #print(f"{m}:", L)
+    return L, IntV.tolist()
+
+if __name__ == '__main__': #python apsp.py -v
     import doctest
     doctest.testmod()
     
+    G = Graph(5, 9)
+    G.addEdge(0, 1, 3)
+    G.addEdge(0, 2, 8)
+    G.addEdge(0, 4, -4)
+    G.addEdge(1, 3, 1)
+    G.addEdge(1, 4, 7)
+    G.addEdge(2, 1, 4)
+    G.addEdge(3, 0, 2)
+    G.addEdge(3, 2, -5)
+    G.addEdge(4, 3, 6)
     
-  #python apsp.py -v
+    a, b = APSP(G)
+    print(a)
+    print(b)
+    reconstructFW(a, b)
+    
+    print("\n\n")
+    
+    a, b = FloydWarshall(G)
+    print(a)
+    print(b)
+    reconstructFW(a, b)
