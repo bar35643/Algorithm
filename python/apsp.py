@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """
 Implements all pairs shortest path algorithms.
+
+WIKI: https://en.wikipedia.org/wiki/Shortest_path_problem
+
 """
 from __future__ import division
 import copy
