@@ -157,7 +157,7 @@ class Graph(object):
                 v1, v2 = parts
                 cost = 1
             else:
-                raise Exception, 'Invalid data'
+                raise Exception('Invalid data')
             if one_based:
                 G.addEdge(v1-1, v2-1, cost)
             else:
