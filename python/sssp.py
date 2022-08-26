@@ -26,9 +26,9 @@ def Dijkstra(G, start):
     ([0, 3, 1, 3, 6], [-1, 2, 0, 2, 1])
     """
     # Current single source shortest path distances
-    A = [float('inf') for _ in xrange(G.numVerts)]
+    A = [float('inf') for _ in range(G.numVerts)]
     # Current Pointer to previous vertex in shortest path (-1 means none)
-    P = [-1 for _ in xrange(G.numVerts)]
+    P = [-1 for _ in range(G.numVerts)]
 
     # Note that in order to maintain invariance of A and P, whenever one
     # is updated the other should be updated as well.
@@ -95,21 +95,21 @@ def BellmanFord(G, start):
     True
     """
     # We only need 2 1-D arrays to hold shortest path values.
-    A0 = [float('inf') for _ in xrange(G.numVerts)]
+    A0 = [float('inf') for _ in range(G.numVerts)]
     A1 = copy.deepcopy(A0)
     # We need 1 1-D array to hold previous vertex pointers
-    P = [-1 for _ in xrange(G.numVerts)]
+    P = [-1 for _ in range(G.numVerts)]
     # Initialize A
     A0[start] = 0
     # Main loop
     # We run this n + 1 times so that we can detect presence
     # of negative edge cycles.
-    for k in xrange(G.numVerts+1):
+    for k in range(G.numVerts+1):
         if k % 2 == 0:
             Acur = A1; Aprev = A0
         else:
             Acur = A0; Aprev = A1
-        for vCur in xrange(G.numVerts):
+        for vCur in range(G.numVerts):
             Acur[vCur] = Aprev[vCur]
             for eIdx in G.getVertHead(vCur):
                 vTail = G.getEdge(eIdx)[0]
@@ -118,7 +118,7 @@ def BellmanFord(G, start):
                     Acur[vCur] = pathcost
                     P[vCur] = vTail
     # Check for negative cycles
-    for i in xrange(G.numVerts):
+    for i in range(G.numVerts):
         if Acur[i] != Aprev[i]:
             return None, None
     return Acur, P
